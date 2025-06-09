@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Orientation</title>
+</head>
+<body>
+  <h1>スマホの傾き角度</h1>
+  <button id="startBtn" style="display:none;">センサー取得開始</button>
+  <p id="output">読み取り中...</p>
+
+  <script>
+    const output = document.getElementById('output');
+    const btn = document.getElementById('startBtn');
+
+    function handleOrientation(event) {
+      const pitch = event.beta;
+      const roll = event.gamma;
+      if (pitch === null || roll === null) {
+        output.textContent = 'センサー値を取得できません。';
+        return;
+      }
+      output.textContent =
+        `前後傾き（Pitch）: ${pitch.toFixed(2)}°, 左右傾き（Roll）: ${roll.toFixed(2)}°`;
+    }
+
+    function startOrientation() {
+      window.addEventListener('deviceorientation', handleOrientation);
+      output.textContent = '読み取り中...';
+      btn.style.display = 'none';
+    }
+
+    // iOS13+ではユーザー操作が必要
+    function setup() {
+      if (
+        typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function'
+      ) {
+        btn.style.display = 'inline-block';
+        btn.onclick = () => {
+          DeviceOrientationEvent.requestPermission().then(response => {
+            if (response === 'granted') {
+              startOrientation();
+            } else {
+              output.textContent = 'センサーの利用が許可されませんでした。';
+            }
+          }).catch(() => {
+            output.textContent = 'センサーの利用許可取得でエラーが発生しました。';
+          });
+        };
+      } else {
+        // Androidなど他環境
+        startOrientation();
+      }
+    }
+
+    window.onload = setup;
+  </script>
+</body>
+</html>
